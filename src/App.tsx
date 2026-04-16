@@ -39,7 +39,7 @@ const Ghost = ({
       initial={{ opacity: 1 }}
       animate={{ opacity: visible ? 1 : 0 }}
       transition={{ duration: 0.3 }}
-      className="relative w-10 h-10 flex items-center justify-center pointer-events-none"
+      className="relative w-[30px] h-[30px] flex items-center justify-center pointer-events-none"
       style={{ zIndex: 20 }}
     >
       <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg">
@@ -104,10 +104,18 @@ export default function App() {
     setStep('MOVING');
     setMessage('유령이 이동 중입니다...');
     
-    // Generate coordinates in 0.25 increments between -4 and 4
-    // (Range of 8 units / 0.25 = 32 steps + 1 = 33 possible values)
-    const finalX = (Math.floor(Math.random() * 33) - 16) * 0.25;
-    const finalY = (Math.floor(Math.random() * 33) - 16) * 0.25;
+    // Function to generate a random coordinate with |val| > 0.5 in 0.25 increments
+    const getRandomCoord = () => {
+      let val;
+      do {
+        // Range -4 to 4 in 0.25 steps (33 possible values)
+        val = (Math.floor(Math.random() * 33) - 16) * 0.25;
+      } while (Math.abs(val) <= 0.5);
+      return val;
+    };
+
+    const finalX = getRandomCoord();
+    const finalY = getRandomCoord();
     const finalPixel = coordToPixel({ x: finalX, y: finalY });
 
     // Generate intermediate points for a wandering effect
