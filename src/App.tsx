@@ -11,7 +11,7 @@ import { Target, Bomb, RotateCcw, Ghost as GhostIcon, Eye, EyeOff, Crosshair } f
 const BOARD_SIZE = 500;
 const GRID_UNIT = 50; // 50px per coordinate unit
 const ORIGIN = BOARD_SIZE / 2;
-const HIT_RADIUS = 30; // Tolerance for hitting the ghost
+const HIT_RADIUS = 22; // Adjusted for reduced ghost size (3/4 of 30)
 
 type GameStep = 'START' | 'MOVING' | 'MOVE_DONE' | 'HIDDEN' | 'AIMED' | 'RESULT';
 
