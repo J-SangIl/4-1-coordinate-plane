@@ -1,0 +1,6 @@
+{
+  "name": "유령 잡기 - 좌표평면 게임",
+  "description": "중학교 1학년 수학 좌표평면 단원을 위한 게이미피케이션 학습 앱입니다. 유령의 위치를 유추하고 폭탄을 발사하여 좌표 감각을 익힙니다.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
