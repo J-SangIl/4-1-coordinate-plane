@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Target, Bomb, RotateCcw, Ghost as GhostIcon, Eye, EyeOff, Crosshair } from 'lucide-react';
+import { Target, Bomb, RotateCcw, Ghost as GhostIcon, Eye, EyeOff, Crosshair, Volume2, VolumeX } from 'lucide-react';
+import { Howl } from 'howler';
 
 // --- Constants ---
 const BOARD_SIZE = 600;
@@ -85,8 +86,37 @@ export default function App() {
   const [message, setMessage] = useState('유령 이동 버튼을 눌러 게임을 시작하세요!');
   const [showExplosion, setShowExplosion] = useState(false);
   const [bombPath, setBombPath] = useState<PixelPos[] | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(false);
 
   const boardRef = useRef<HTMLDivElement>(null);
+
+  // Sound effects
+  const sfx = useMemo(() => ({
+    bgm: new Howl({ src: ['https://cdn.pixabay.com/audio/2024/02/14/audio_765c52c676.mp3'], loop: true, volume: 0.2, html5: true }),
+    move: new Howl({ src: ['https://cdn.pixabay.com/audio/2022/03/10/audio_c8c8a11ed4.mp3'], volume: 0.5 }),
+    hide: new Howl({ src: ['https://cdn.pixabay.com/audio/2021/08/04/audio_06d8a24564.mp3'], volume: 0.6 }),
+    fire: new Howl({ src: ['https://cdn.pixabay.com/audio/2022/08/03/audio_710488661b.mp3'], volume: 0.5 }),
+    explode: new Howl({ src: ['https://cdn.pixabay.com/audio/2022/03/10/audio_b281f62c5e.mp3'], volume: 0.6 }),
+    success: new Howl({ src: ['https://cdn.pixabay.com/audio/2021/08/04/audio_13a177242c.mp3'], volume: 0.7 }),
+    fail: new Howl({ src: ['https://cdn.pixabay.com/audio/2022/03/15/audio_7314787a74.mp3'], volume: 0.6 }),
+  }), []);
+
+  useEffect(() => {
+    if (soundEnabled) {
+      sfx.bgm.play();
+    } else {
+      sfx.bgm.pause();
+    }
+    return () => {
+      sfx.bgm.stop();
+    };
+  }, [soundEnabled, sfx.bgm]);
+
+  const playSfx = (name: keyof typeof sfx) => {
+    if (soundEnabled && name !== 'bgm') {
+      sfx[name].play();
+    }
+  };
 
   // Convert coordinate units to pixels
   const coordToPixel = (pos: Position): PixelPos => ({
@@ -103,6 +133,7 @@ export default function App() {
   const handleMoveGhost = () => {
     setStep('MOVING');
     setMessage('이동 중...');
+    playSfx('move');
     
     // Function to generate a random coordinate with |val| > 0.5 in 0.25 increments
     const getRandomCoord = () => {
@@ -141,6 +172,7 @@ export default function App() {
   const handleHideGhost = () => {
     setStep('HIDDEN');
     setMessage('유령 숨음');
+    playSfx('hide');
   };
 
   const handleBoardClick = (e: React.MouseEvent) => {
@@ -164,6 +196,7 @@ export default function App() {
     
     setStep('RESULT');
     setMessage('발사!');
+    playSfx('fire');
 
     // Animate bomb from origin to target
     setBombPath([{ left: ORIGIN, top: ORIGIN }, targetPos]);
@@ -171,6 +204,7 @@ export default function App() {
     setTimeout(() => {
       setShowExplosion(true);
       setBombPath(null);
+      playSfx('explode');
 
       // Judge result
       const ghostPixel = coordToPixel(ghostPos);
@@ -183,8 +217,10 @@ export default function App() {
         setShowExplosion(false);
         if (dist <= HIT_RADIUS) {
           setMessage('성공! 🎉');
+          playSfx('success');
         } else {
           setMessage('실패! 👻');
+          playSfx('fail');
         }
       }, 1000);
     }, 800);
@@ -205,10 +241,22 @@ export default function App() {
   return (
     <div className="h-screen flex flex-col items-center p-2 bg-bg overflow-hidden">
       {/* Header */}
-      <div className="w-full max-w-7xl flex justify-center py-2">
+      <div className="w-full max-w-7xl flex justify-between items-center py-2 px-10">
+        <div className="w-32" /> {/* Spacer */}
         <h1 id="title" className="text-2xl font-extrabold text-primary tracking-tight">
           👻 유령 잡기
         </h1>
+        <button
+          onClick={() => setSoundEnabled(!soundEnabled)}
+          className={`p-2 rounded-full transition-all border-2 ${
+            soundEnabled 
+            ? 'bg-primary text-white border-primary' 
+            : 'bg-white text-muted border-slate-200 hover:border-primary hover:text-primary shadow-sm'
+          }`}
+          title={soundEnabled ? '소리 끄기' : '소리 켜기'}
+        >
+          {soundEnabled ? <Volume2 size={24} /> : <VolumeX size={24} />}
+        </button>
       </div>
 
       <div className="flex gap-4 max-w-7xl w-full flex-1 justify-center items-stretch overflow-hidden pb-4">
