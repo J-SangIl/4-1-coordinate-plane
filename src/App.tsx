@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Target, Bomb, RotateCcw, Ghost as GhostIcon, Eye, EyeOff, Crosshair, Volume2, VolumeX } from 'lucide-react';
-import { Howl } from 'howler';
+import { Howl, Howler } from 'howler';
 
 // --- Constants ---
 const BOARD_SIZE = 600;
@@ -114,8 +114,22 @@ export default function App() {
 
   const playSfx = (name: keyof typeof sfx) => {
     if (soundEnabled && name !== 'bgm') {
+      // Ensure context is resumed for mobile/tablet
+      if (Howler.ctx && Howler.ctx.state === 'suspended') {
+        Howler.ctx.resume();
+      }
       sfx[name].play();
     }
+  };
+
+  const toggleSound = () => {
+    if (!soundEnabled) {
+      // Force resume AudioContext on first activation
+      if (Howler.ctx && Howler.ctx.state === 'suspended') {
+        Howler.ctx.resume();
+      }
+    }
+    setSoundEnabled(!soundEnabled);
   };
 
   // Convert coordinate units to pixels
@@ -247,7 +261,7 @@ export default function App() {
           👻 유령 잡기
         </h1>
         <button
-          onClick={() => setSoundEnabled(!soundEnabled)}
+          onClick={toggleSound}
           className={`p-2 rounded-full transition-all border-2 ${
             soundEnabled 
             ? 'bg-primary text-white border-primary' 
